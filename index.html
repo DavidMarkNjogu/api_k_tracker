@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Toolkit — Ops & Migration Dashboard</title>
+<style>
+  :root {
+    --navy: #13294B; --navy2: #1C3A63; --gold: #C8A44D; --ice: #EDF2FA;
+    --grey: #5C6675; --line: #DCE4F0; --green: #2E7D52; --red: #A33A3A;
+    --warm: #FBF3DE; --bg: #F8FAFC; --card: #FFFFFF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--navy);
+    padding: 24px;
+    font-size: 13.5px;
+  }
+  .container { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  
+  header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
+    color: #fff;
+    padding: 20px 24px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(19,41,75,0.12);
+  }
+  header h1 { font-size: 19px; font-weight: 700; }
+  header .sub { font-size: 12px; color: #A9BBD4; margin-top: 4px; }
+  .stats-pill {
+    background: rgba(255,255,255,0.12);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media(max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--line);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Checklist Table */
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+  th { background: var(--ice); font-weight: 600; color: var(--grey); }
+  tr.done { background: #F0FDF4; }
+  tr.done td { color: var(--green); }
+  tr.done a { color: var(--green); font-weight: 600; }
+  input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--green); }
+  a { color: #2563EB; text-decoration: none; font-weight: 500; }
+  a:hover { text-decoration: underline; }
+
+  /* Forms & Tools */
+  label { display: block; font-size: 11px; font-weight: 700; color: var(--grey); margin-bottom: 6px; letter-spacing: 0.3px; }
+  textarea, input, select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12.5px;
+    color: var(--navy);
+    background: #fff;
+    margin-bottom: 10px;
+  }
+  textarea { font-family: "SFMono-Regular", Consolas, Menlo, monospace; font-size: 12px; resize: vertical; }
+  textarea:focus, input:focus, select:focus { outline: none; border-color: var(--gold); }
+
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; }
+
+  button {
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--navy);
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  button:hover { background: var(--navy2); }
+  button.gold { background: var(--gold); color: var(--navy); }
+  button.gold:hover { background: #b8953f; }
+  button.ghost { background: #fff; color: var(--navy); border: 1px solid var(--line); }
+  button.ghost:hover { background: var(--ice); }
+
+  .out-box {
+    padding: 12px;
+    border-radius: 8px;
+    background: var(--ice);
+    border: 1px solid var(--line);
+    margin-top: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    display: none;
+  }
+  .out-box.good { background: #E9F3EC; border-color: #C2E2CC; color: var(--green); display: block; }
+  .out-box.warn { background: var(--warm); border-color: #EEDFA8; color: #8A6D1F; display: block; }
+  .out-box.err { background: #FBEDED; border-color: #F3C6C6; color: var(--red); display: block; }
+
+  .badge { display: inline-block; padding: 2px 7px; border-radius: 12px; font-size: 10px; font-weight: 700; }
+  .badge.in-vault { background: #DCFCE7; color: var(--green); }
+  .badge.pending { background: var(--ice); color: var(--grey); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  
+  <header>
+    <div>
+      <h1>🤖 AI Toolkit Provider & Model Manager</h1>
+      <div class="sub">Deployment, error diagnostics, and batch model importer</div>
+    </div>
+    <div class="stats-pill" id="statsCount">Vault Progress: 6 / 13 (46%)</div>
+  </header>
+
+  <!-- TOP FULL WIDTH: Checklist -->
+  <div class="card">
+    <div class="card-title">
+      <span>Free Provider Setup Tracker</span>
+      <button class="ghost" style="padding:4px 10px; font-size:11px;" onclick="resetChecks()">Reset</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:40px;">Done</th>
+          <th>Provider</th>
+          <th>Status</th>
+          <th>API Dashboard</th>
+          <th>Default Model / Fallback Slug</th>
+        </tr>
+      </thead>
+      <tbody id="rowsBody">
+        <tr class="done"><td><input type="checkbox" checked onchange="sync(this)"></td><td><b>Google Gemini</b></td><td><span class="badge in-vault">In Vault</span></td><td><a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a></td><td><code>gemini-2.5-flash</code></td></tr>
+        <tr class="done"><td><input type="checkbox" checked onchange="sync(this)"></td><td><b>Groq</b></td><td><span class="badge in-vault">In Vault</span></td><td><a href="https://console.groq.com/keys" target="_blank">console.groq.com</a></td><td><code>llama-3.3-70b-versatile</code></td></tr>
+        <tr class="done"><td><input type="checkbox" checked onchange="sync(this)"></td><td><b>OpenRouter</b></td><td><span class="badge in-vault">In Vault</span></td><td><a href="https://openrouter.ai/keys" target="_blank">openrouter.ai</a></td><td><code>meta-llama/llama-3.3-70b-instruct:free</code></td></tr>
+        <tr class="done"><td><input type="checkbox" checked onchange="sync(this)"></td><td><b>Cerebras</b></td><td><span class="badge in-vault">In Vault</span></td><td><a href="https://cloud.cerebras.ai" target="_blank">cloud.cerebras.ai</a></td><td><code>llama-3.3-70b</code></td></tr>
+        <tr class="done"><td><input type="checkbox" checked onchange="sync(this)"></td><td><b>NVIDIA NIM</b></td><td><span class="badge in-vault">In Vault</span></td><td><a href="https://build.nvidia.com" target="_blank">build.nvidia.com</a></td><td><code>meta/llama-3.3-70b-instruct</code></td></tr>
+        <tr class="done"><td><input type="checkbox" checked onchange="sync(this)"></td><td><b>Together AI</b></td><td><span class="badge in-vault">In Vault</span></td><td><a href="https://api.together.ai" target="_blank">api.together.ai</a></td><td><code>meta-llama/Llama-3.3-70B-Instruct-Turbo-Free</code></td></tr>
+        <tr><td><input type="checkbox" onchange="sync(this)"></td><td><b>GitHub Models</b></td><td><span class="badge pending">Pending</span></td><td><a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a></td><td><code>gpt-4o-mini</code></td></tr>
+        <tr><td><input type="checkbox" onchange="sync(this)"></td><td><b>Hugging Face</b></td><td><span class="badge pending">Pending</span></td><td><a href="https://huggingface.co/settings/tokens" target="_blank">huggingface.co/settings/tokens</a></td><td><code>meta-llama/Llama-3.3-70B-Instruct</code></td></tr>
+        <tr><td><input type="checkbox" onchange="sync(this)"></td><td><b>Mistral AI</b></td><td><span class="badge pending">Pending</span></td><td><a href="https://console.mistral.ai/api-keys" target="_blank">console.mistral.ai</a></td><td><code>mistral-small-latest</code></td></tr>
+        <tr><td><input type="checkbox" onchange="sync(this)"></td><td><b>SambaNova</b></td><td><span class="badge pending">Pending</span></td><td><a href="https://cloud.sambanova.ai/apis" target="_blank">cloud.sambanova.ai</a></td><td><code>Meta-Llama-3.3-70B-Instruct</code></td></tr>
+        <tr><td><input type="checkbox" onchange="sync(this)"></td><td><b>SiliconFlow</b></td><td><span class="badge pending">Pending</span></td><td><a href="https://cloud.siliconflow.com/account/ak" target="_blank">siliconflow.com</a></td><td><code>deepseek-ai/DeepSeek-V3</code></td></tr>
+        <tr><td><input type="checkbox" onchange="sync(this)"></td><td><b>Cohere</b></td><td><span class="badge pending">Pending</span></td><td><a href="https://dashboard.cohere.com/api-keys" target="_blank">dashboard.cohere.com</a></td><td><code>command-r-plus</code></td></tr>
+        <tr><td><input type="checkbox" onchange="sync(this)"></td><td><b>Cloudflare Workers AI</b></td><td><span class="badge pending">Pending</span></td><td><a href="https://dash.cloudflare.com" target="_blank">dash.cloudflare.com</a></td><td><code>@cf/meta/llama-3.3-70b-instruct-fp8-fast</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- BOTTOM GRID: Diagnostics & Bulk Importer -->
+  <div class="grid">
+    
+    <!-- ERROR ANALYZER -->
+    <div class="card">
+      <div class="card-title">🔍 API Error Diagnoser</div>
+      <label>Paste error output / server responses</label>
+      <textarea id="errInput" rows="5" placeholder='Paste error log here... e.g. "404 models/gemini-pro is not found", "402 Payment Required", or "429 Rate limit exceeded"'></textarea>
+      <button class="gold" onclick="diagnoseError()">Analyze Error</button>
+      <div id="errResult" class="out-box"></div>
+    </div>
+
+    <!-- BULK MODEL / KEY ARRAY IMPORTER -->
+    <div class="card">
+      <div class="card-title">📦 Bulk Model / Key Importer</div>
+      <label>Paste an Array or List of Models / Keys</label>
+      <textarea id="importInput" rows="5" placeholder='Paste raw list or JSON, e.g.:
+["gemini-2.5-flash", "llama-3.3-70b", "deepseek-v3"]
+or paste multiple API keys directly...'></textarea>
+      <div class="row">
+        <button onclick="processBulk()">Format for Code.gs Vault</button>
+        <button class="ghost" onclick="copyFormatted()">Copy JSON</button>
+      </div>
+      <div id="importResult" class="out-box"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  function sync(cb) {
+    var tr = cb.closest('tr');
+    var badge = tr.querySelector('.badge');
+    if (cb.checked) {
+      tr.classList.add('done');
+      badge.className = 'badge in-vault';
+      badge.textContent = 'In Vault';
+    } else {
+      tr.classList.remove('done');
+      badge.className = 'badge pending';
+      badge.textContent = 'Pending';
+    }
+    updateCount();
+  }
+
+  function updateCount() {
+    var all = document.querySelectorAll('#rowsBody tr').length;
+    var done = document.querySelectorAll('#rowsBody tr.done').length;
+    var pct = Math.round((done / all) * 100);
+    document.getElementById('statsCount').textContent = 'Vault Progress: ' + done + ' / ' + all + ' (' + pct + '%)';
+  }
+
+  function resetChecks() {
+    document.querySelectorAll('#rowsBody input').forEach(function(i){ i.checked = false; sync(i); });
+  }
+
+  function diagnoseError() {
+    var raw = document.getElementById('errInput').value.trim();
+    var out = document.getElementById('errResult');
+    if (!raw) {
+      out.className = 'out-box warn';
+      out.textContent = 'Paste an error log first.';
+      return;
+    }
+
+    var lower = raw.toLowerCase();
+    var solution = '';
+    var type = 'warn';
+
+    if (lower.indexOf('404') !== -1 || lower.indexOf('not found') !== -1) {
+      type = 'err';
+      solution = '❌ Error 404: Model Not Found / Quota Ceiling\n' +
+                 '• Root Cause 1: The model name string is outdated/retired.\n' +
+                 '• Root Cause 2 (Gemini-specific): Google returns 404 when your free quota for that specific model variant runs out.\n' +
+                 '👉 Fix: Use "Auto-fix all models" from the menu or switch to fallback: gemini-2.5-flash-lite.';
+    } else if (lower.indexOf('402') !== -1 || lower.indexOf('credit') !== -1 || lower.indexOf('payment') !== -1) {
+      type = 'err';
+      solution = '❌ Error 402: Out of Credit\n' +
+                 '• Root Cause: Provider (e.g. Cerebras/DeepSeek) requires an active credit balance.\n' +
+                 '👉 Fix: Switch off this key in Drawer or top up the provider account.';
+    } else if (lower.indexOf('429') !== -1 || lower.indexOf('rate limit') !== -1 || lower.indexOf('quota') !== -1) {
+      type = 'warn';
+      solution = '⚠️ Error 429: Rate Limit Exceeded\n' +
+                 '• Root Cause: Too many requests sent per minute.\n' +
+                 '👉 Fix: Code.gs automatically benches this key for 65s and routes to your other keys silently.';
+    } else if (lower.indexOf('401') !== -1 || lower.indexOf('403') !== -1 || lower.indexOf('unauthorized') !== -1) {
+      type = 'err';
+      solution = '❌ Error 401/403: Invalid API Key\n' +
+                 '• Root Cause: Extra whitespace, missing permissions, or revoked key.\n' +
+                 '👉 Fix: Re-copy the key directly from the provider dashboard.';
+    } else if (lower.indexOf('could not parse plan') !== -1 || lower.indexOf('json') !== -1) {
+      type = 'warn';
+      solution = '⚠️ JSON / Plan Parsing Collision\n' +
+                 '• Root Cause: Multi-command prompt produced a truncated response.\n' +
+                 '👉 Fix: Send commands one at a time, or ask the AI to execute via `run_custom_script`.';
+    } else {
+      type = 'warn';
+      solution = 'ℹ️ Generic Diagnostic:\n' +
+                 '• Raw Code: ' + raw.slice(0, 150) + '\n' +
+                 '• Tip: Check network connectivity or run "Test all my keys" in the Sheet menu.';
+    }
+
+    out.className = 'out-box ' + type;
+    out.textContent = solution;
+  }
+
+  var lastGeneratedJson = '';
+
+  function processBulk() {
+    var raw = document.getElementById('importInput').value.trim();
+    var out = document.getElementById('importResult');
+    if (!raw) {
+      out.className = 'out-box warn';
+      out.textContent = 'Paste a list or JSON array first.';
+      return;
+    }
+
+    try {
+      // If it's already JSON
+      if (raw.startsWith('[') || raw.startsWith('{')) {
+        var parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          lastGeneratedJson = JSON.stringify(parsed, null, 2);
+          out.className = 'out-box good';
+          out.textContent = '✓ Valid JSON array detected with ' + parsed.length + ' entries.\nReady to paste into the Import Backup field!';
+          return;
+        }
+      }
+    } catch(e) {}
+
+    // Fallback: Parse line-by-line model names or keys
+    var lines = raw.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean);
+    var generated = [];
+    lines.forEach(function(item, idx) {
+      generated.push({
+        id: 'k' + (Date.now() + idx),
+        nickname: 'Imported Key ' + (idx + 1),
+        provider: 'openrouter',
+        model: item,
+        key: item.startsWith('sk-') || item.startsWith('gsk_') ? item : 'PASTE_KEY_HERE',
+        enabled: true,
+        wins: 0,
+        fails: 0
+      });
+    });
+
+    lastGeneratedJson = JSON.stringify(generated, null, 2);
+    out.className = 'out-box good';
+    out.textContent = '✓ Formatted ' + lines.length + ' items into Apps Script Vault format:\n\n' + lastGeneratedJson;
+  }
+
+  function copyFormatted() {
+    if (!lastGeneratedJson) { alert('Generate formatted JSON first!'); return; }
+    navigator.clipboard.writeText(lastGeneratedJson);
+    alert('JSON copied to clipboard! Paste it into the "Import Backup" field in your Sheet drawer.');
+  }
+</script>
+</body>
+</html>
