@@ -128,7 +128,7 @@
   <header>
     <div>
       <h1>🤖 AI Toolkit — Multi-Provider Ops Hub</h1>
-      <div class="sub">Dynamic reconciliation, error logging, and deduplicated sheet export</div>
+      <div class="sub">Live web discovery, error logging, and deduplicated sheet export</div>
     </div>
     <div class="stats-pill" id="statsDisplay">Vault Progress: 0 / 0 (0%)</div>
   </header>
@@ -139,7 +139,7 @@
       <b>How sharing & sync works:</b> 
       Every user's checkmarks, custom additions, and error statuses are stored safely in their own browser (<code>localStorage</code>). 
       Your personal keys and changes are never transmitted. Check off models as you add them to your Google Sheet, then click 
-      <b>"Export Unchecked (For Sheet)"</b> to generate a deduplicated JSON payload containing only new models.
+      <b>"Export Unchecked"</b> to generate a deduplicated JSON payload containing only new models.
     </div>
   </div>
 
@@ -147,6 +147,7 @@
     <div class="card-title">
       <span>Provider & Model Registry</span>
       <div style="display:flex; gap:8px;">
+        <button class="gold" id="syncLiveBtn" onclick="pullLiveFromInternet()">🌐 Pull Live Free Models from Web</button>
         <button class="gold" onclick="document.getElementById('reconcileInput').focus()">⚡ Smart AI Reconciler</button>
         <button class="ghost" onclick="exportMissingForVault()">📋 Export Unchecked (For Sheet)</button>
       </div>
@@ -246,11 +247,18 @@ Add Chutes AI at https://api.chutes.ai/v1/chat/completions using deepseek-ai/Dee
     { id: 'aimlapi', label: 'AIML API', tier: 'free', get: 'https://aimlapi.com', model: 'meta-llama/Llama-3.3-70B-Instruct', url: 'https://api.aimlapi.com/v1/chat/completions', inVault: false, status: 'ok' }
   ];
 
-  var providers = JSON.parse(localStorage.getItem('ai_providers_v2') || 'null') || defaultProviders;
+  // 1. Storage Migration Fallback: Checks older versions to prevent data wipes
+  var savedRaw = localStorage.getItem('ai_providers_v4') 
+              || localStorage.getItem('ai_providers_v3') 
+              || localStorage.getItem('ai_providers_v2') 
+              || localStorage.getItem('ai_providers_v1') 
+              || localStorage.getItem('ai_providers_list');
+
+  var providers = savedRaw ? JSON.parse(savedRaw) : defaultProviders;
   var currentFilter = 'all';
 
   function saveState() {
-    localStorage.setItem('ai_providers_v2', JSON.stringify(providers));
+    localStorage.setItem('ai_providers_v4', JSON.stringify(providers));
     renderTable();
   }
 
@@ -310,12 +318,70 @@ Add Chutes AI at https://api.chutes.ai/v1/chat/completions using deepseek-ai/Dee
     document.getElementById('statsDisplay').textContent = 'Vault Progress: ' + inVaultCount + ' / ' + providers.length + ' (' + pct + '%)';
   }
 
-  function toggleVault(idx, val) { providers[idx].inVault = val; saveState(); }
-  function changeStatus(idx, val) { providers[idx].status = val; saveState(); }
+  function toggleVault(idx, val) {
+    providers[idx].inVault = val;
+    saveState();
+  }
+
+  function changeStatus(idx, val) {
+    providers[idx].status = val;
+    saveState();
+  }
+
   function deleteEntry(idx) {
     if (!confirm('Remove this model entry from the list?')) return;
     providers.splice(idx, 1);
     saveState();
+  }
+
+  /* ---------- REAL-TIME INTERNET MODEL DISCOVERY ---------- */
+  async function pullLiveFromInternet() {
+    var btn = document.getElementById('syncLiveBtn');
+    btn.textContent = "⏳ Pulling Live from Web...";
+    btn.disabled = true;
+
+    try {
+      // Fetch live models across the internet in real-time
+      var response = await fetch("https://openrouter.ai/api/v1/models");
+      if (!response.ok) throw new Error("Network response failed: " + response.status);
+      
+      var data = await response.json();
+      var liveModels = data.data || [];
+      var added = 0;
+
+      // Filter dynamically for 100% free models
+      liveModels.forEach(function(m) {
+        var isZeroCost = m.id.endsWith(':free') || (m.pricing && m.pricing.prompt === "0" && m.pricing.completion === "0");
+        
+        if (isZeroCost) {
+          var cleanId = m.id.replace(':free', '').replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase();
+          var exists = providers.some(function(p) { return p.model === m.id || p.id === cleanId; });
+          
+          if (!exists) {
+            providers.push({
+              id: cleanId,
+              label: m.name || m.id,
+              tier: 'free',
+              get: 'https://openrouter.ai/keys',
+              url: 'https://openrouter.ai/api/v1/chat/completions',
+              model: m.id,
+              inVault: false,
+              status: 'ok'
+            });
+            added++;
+          }
+        }
+      });
+
+      saveState();
+      alert("✓ Real-Time Web Discovery Complete!\n• Scanned " + liveModels.length + " live models.\n• Ingested " + added + " new verified 100% FREE endpoints.");
+
+    } catch (err) {
+      alert("❌ Live Discovery Failed: " + err.message);
+    } finally {
+      btn.textContent = "🌐 Pull Live Free Models from Web";
+      btn.disabled = false;
+    }
   }
 
   function extractProvidersFromText(text) {
@@ -332,12 +398,14 @@ Add Chutes AI at https://api.chutes.ai/v1/chat/completions using deepseek-ai/Dee
         return arr.map(function(item) {
           var id = String(item.id || item.label || 'provider').toLowerCase().replace(/[^a-z0-9_]/g, '');
           return {
-            id: id, label: item.label || item.name || id,
+            id: id,
+            label: item.label || item.name || id,
             tier: item.tier || (item.free ? 'free' : 'freemium'),
             get: item.get || item.website || (id + '.com'),
             url: item.url || item.endpoint || ('https://api.' + id + '.com/v1/chat/completions'),
             model: item.model || 'meta-llama/Llama-3.3-70B-Instruct',
-            inVault: false, status: 'ok'
+            inVault: false,
+            status: 'ok'
           };
         });
       } catch (e) {}
@@ -353,11 +421,14 @@ Add Chutes AI at https://api.chutes.ai/v1/chat/completions using deepseek-ai/Dee
         var possibleName = words[0] || 'Custom Provider';
         var id = possibleName.toLowerCase().replace(/[^a-z0-9_]/g, '') || ('prov_' + Date.now());
         results.push({
-          id: id, label: possibleName, tier: line.toLowerCase().includes('free') ? 'free' : 'freemium',
+          id: id,
+          label: possibleName,
+          tier: line.toLowerCase().includes('free') ? 'free' : 'freemium',
           get: urlMatch ? urlMatch[0] : (id + '.com'),
           url: urlMatch ? urlMatch[0] : ('https://api.' + id + '.com/v1/chat/completions'),
           model: modelMatch ? modelMatch[0] : 'llama-3.3-70b-instruct',
-          inVault: false, status: 'ok'
+          inVault: false,
+          status: 'ok'
         });
       }
     });
@@ -402,8 +473,14 @@ Add Chutes AI at https://api.chutes.ai/v1/chat/completions using deepseek-ai/Dee
     if (!label || !id || !url || !model) { alert('Please fill in Name, ID, Base URL, and Model.'); return; }
 
     providers.push({
-      id: id, label: label, tier: tier, get: get || id,
-      url: url, model: model, inVault: false, status: 'ok'
+      id: id,
+      label: label,
+      tier: tier,
+      get: get || id,
+      url: url,
+      model: model,
+      inVault: false,
+      status: 'ok'
     });
 
     document.getElementById('newLabel').value = '';
@@ -425,8 +502,13 @@ Add Chutes AI at https://api.chutes.ai/v1/chat/completions using deepseek-ai/Dee
 
     var payload = unchecked.map(function(p){
       return {
-        id: p.id, label: p.label, shape: 'openai', url: p.url,
-        model: p.model, free: p.tier === 'free', key: 'PASTE_' + p.id.toUpperCase() + '_KEY_HERE'
+        id: p.id,
+        label: p.label,
+        shape: 'openai',
+        url: p.url,
+        model: p.model,
+        free: p.tier === 'free',
+        key: 'PASTE_' + p.id.toUpperCase() + '_KEY_HERE'
       };
     });
 
