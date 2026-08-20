@@ -3,142 +3,207 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Toolkit — Master Model & Operations Hub</title>
+<title>AI Toolkit — Model & Operations Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --navy: #13294B; --navy2: #1C3A63; --gold: #C8A44D; --ice: #EDF2FA;
-    --grey: #5C6675; --line: #DCE4F0; --green: #2E7D52; --red: #A33A3A;
-    --warm: #FBF3DE; --bg: #F8FAFC; --card: #FFFFFF;
+    --bg: #0A0B0E;
+    --surface: #121419;
+    --surface-2: #191C22;
+    --border: #262A32;
+    --border-soft: #1E2127;
+    --text: #EDEFF3;
+    --text-dim: #9298A3;
+    --text-faint: #5B616C;
+    --accent: #FF7A45;
+    --accent-dim: rgba(255,122,69,0.12);
+    --accent-line: rgba(255,122,69,0.35);
+    --green: #34D399;
+    --green-dim: rgba(52,211,153,0.12);
+    --amber: #FBBF24;
+    --amber-dim: rgba(251,191,36,0.12);
+    --red: #F87171;
+    --red-dim: rgba(248,113,113,0.12);
+    --radius: 10px;
+    --radius-sm: 6px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: var(--bg);
-    color: var(--navy);
-    padding: 24px;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(1100px 500px at 12% -10%, rgba(255,122,69,0.06), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    padding: 28px 20px 60px;
     font-size: 13px;
-  }
-  .container { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-  
-  header {
-    background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
-    color: #fff;
-    padding: 20px 24px;
-    border-radius: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 4px 12px rgba(19,41,75,0.12);
-  }
-  header h1 { font-size: 19px; font-weight: 700; }
-  header .sub { font-size: 12px; color: #A9BBD4; margin-top: 4px; }
-  .stats-pill {
-    background: rgba(255,255,255,0.12);
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    border: 1px solid rgba(255,255,255,0.2);
-  }
-
-  .info-banner {
-    background: var(--ice);
-    border: 1px solid #C4D5ED;
-    border-radius: 10px;
-    padding: 14px 18px;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-    font-size: 12.5px;
     line-height: 1.5;
   }
-  .info-banner b { color: var(--navy2); }
+  code, .mono { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; }
 
-  .card {
-    background: var(--card);
-    border-radius: 12px;
-    padding: 20px;
-    border: 1px solid var(--line);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-  }
-  .card-title {
-    font-size: 15px;
-    font-weight: 700;
-    margin-bottom: 12px;
+  .container { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+
+  header {
+    background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 22px 26px;
+    border-radius: var(--radius);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
   }
+  header .brand { display: flex; align-items: center; gap: 12px; }
+  header .mark {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: var(--accent-dim); border: 1px solid var(--accent-line);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: var(--accent); flex-shrink: 0;
+  }
+  header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+  header .sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .stats-pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stats-pill b { color: var(--accent); font-weight: 600; }
 
-  .filter-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .info-banner {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-left: 2px solid var(--accent);
+    border-radius: var(--radius-sm);
+    padding: 13px 16px;
+    display: flex;
+    gap: 11px;
+    align-items: flex-start;
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--text-dim);
+  }
+  .info-banner .ico { color: var(--accent); font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+  .info-banner b { color: var(--text); font-weight: 600; }
+  .info-banner code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; font-size: 11px; color: var(--accent); }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 20px;
+    border: 1px solid var(--border);
+  }
+  .card-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    letter-spacing: -0.005em;
+  }
+  .card-title .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .filter-bar { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .filter-label { font-size: 11px; font-weight: 500; color: var(--text-faint); margin-right: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
   .filter-btn {
-    padding: 6px 12px; border-radius: 20px; border: 1px solid var(--line);
-    background: var(--ice); color: var(--navy); font-size: 11.5px; font-weight: 600; cursor: pointer;
+    padding: 6px 13px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--text-dim); font-size: 11.5px; font-weight: 500; cursor: pointer;
+    transition: all 0.15s ease;
   }
-  .filter-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .filter-btn:hover { border-color: var(--text-faint); color: var(--text); }
+  .filter-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent-line); }
 
-  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); font-size: 12.5px; vertical-align: middle; }
-  th { background: var(--ice); font-weight: 600; color: var(--grey); }
-  tr.done { background: #F0FDF4; }
-  tr.done td { color: var(--green); }
-  tr.has-err { background: #FFF8F8; }
-  
-  input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--green); }
-  a { color: #2563EB; text-decoration: none; font-weight: 500; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 11px 12px; text-align: left; border-bottom: 1px solid var(--border-soft); font-size: 12.5px; vertical-align: middle; }
+  th {
+    font-weight: 500; color: var(--text-faint); font-size: 10.5px;
+    text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border);
+  }
+  tbody tr { transition: background 0.12s ease; }
+  tbody tr:hover { background: var(--surface-2); }
+  tr.done td:first-child { position: relative; }
+  tr.done { background: rgba(52,211,153,0.035); }
+  tr.has-err { background: rgba(248,113,113,0.035); }
+
+  input[type="checkbox"] {
+    width: 17px; height: 17px; cursor: pointer; accent-color: var(--accent);
+    border-radius: 4px;
+  }
+  a { color: var(--accent); text-decoration: none; font-weight: 500; }
   a:hover { text-decoration: underline; }
-  
+
   select.status-select {
-    padding: 5px 8px; border-radius: 6px; border: 1px solid var(--line);
-    font-size: 11.5px; background: #fff; color: var(--navy);
+    padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+    font-size: 11.5px; background: var(--surface-2); color: var(--text-dim);
+    font-family: inherit; cursor: pointer;
   }
-  select.status-select.err-val { border-color: var(--red); color: var(--red); background: #FBEDED; font-weight: 600; }
-  select.status-select.ok-val { border-color: var(--green); color: var(--green); background: #E9F3EC; font-weight: 600; }
+  select.status-select.err-val { border-color: rgba(248,113,113,0.4); color: var(--red); background: var(--red-dim); font-weight: 600; }
+  select.status-select.ok-val { border-color: rgba(52,211,153,0.4); color: var(--green); background: var(--green-dim); font-weight: 600; }
 
-  label { display: block; font-size: 11px; font-weight: 700; color: var(--grey); margin-bottom: 4px; }
+  label { display: block; font-size: 10.5px; font-weight: 500; color: var(--text-faint); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
   input, textarea, select {
-    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px;
-    font-family: inherit; font-size: 12.5px; color: var(--navy); background: #fff; margin-bottom: 10px;
+    width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-family: inherit; font-size: 12.5px; color: var(--text); background: var(--surface-2); margin-bottom: 12px;
+    transition: border-color 0.15s ease;
   }
-  textarea { font-family: "SFMono-Regular", Consolas, Menlo, monospace; font-size: 11.5px; }
-  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--gold); }
+  input::placeholder, textarea::placeholder { color: var(--text-faint); }
+  textarea { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; resize: vertical; }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
 
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  @media(max-width: 860px) { .grid { grid-template-columns: 1fr; } }
-  .row { display: flex; gap: 8px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media(max-width: 860px) { .grid { grid-template-columns: 1fr; } header { flex-direction: column; align-items: flex-start; } }
+  .row { display: flex; gap: 10px; }
   .row > * { flex: 1; }
 
-  button { padding: 8px 14px; border: 0; border-radius: 6px; background: var(--navy); color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; }
-  button:hover { background: var(--navy2); }
-  button.gold { background: var(--gold); color: var(--navy); }
-  button.gold:hover { background: #b8953f; }
-  button.ghost { background: #fff; color: var(--navy); border: 1px solid var(--line); }
-  button.ghost:hover { background: var(--ice); }
-  button.small { padding: 4px 8px; font-size: 11px; }
+  button {
+    padding: 8px 15px; border: 1px solid transparent; border-radius: var(--radius-sm);
+    background: var(--surface-2); color: var(--text); font-size: 12px; font-weight: 500; cursor: pointer;
+    border-color: var(--border); transition: all 0.15s ease;
+  }
+  button:hover { border-color: var(--text-faint); background: #20242B; }
+  button:active { transform: scale(0.98); }
+  button.gold { background: var(--accent-dim); color: var(--accent); border-color: var(--accent-line); }
+  button.gold:hover { background: rgba(255,122,69,0.2); }
+  button.ghost { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+  button.ghost:hover { background: var(--surface-2); color: var(--text); }
+  button.small { padding: 5px 9px; font-size: 11px; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  .badge { display: inline-block; padding: 2px 7px; border-radius: 12px; font-size: 10px; font-weight: 700; }
-  .badge.free { background: #DCFCE7; color: var(--green); }
-  .badge.freemium { background: #FEF3C7; color: #92400E; }
-  .badge.paid { background: #FBEDED; color: var(--red); }
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 10px; font-weight: 600; letter-spacing: 0.02em; }
+  .badge.free { background: var(--green-dim); color: var(--green); }
+  .badge.freemium { background: var(--amber-dim); color: var(--amber); }
+  .badge.paid { background: var(--red-dim); color: var(--red); }
 </style>
 </head>
 <body>
 
 <div class="container">
   <header>
-    <div>
-      <h1>🤖 AI Toolkit — Multi-Provider Ops Hub</h1>
-      <div class="sub">Live web discovery, error logging, and deduplicated sheet export</div>
+    <div class="brand">
+      <div class="mark">◆</div>
+      <div>
+        <h1>AI Toolkit — Multi-Provider Ops Hub</h1>
+        <div class="sub">Live web discovery, error logging, and deduplicated sheet export</div>
+      </div>
     </div>
-    <div class="stats-pill" id="statsDisplay">Vault Progress: 0 / 0 (0%)</div>
+    <div class="stats-pill" id="statsDisplay">Vault Progress: <b>0 / 0</b> (0%)</div>
   </header>
 
   <div class="info-banner">
-    <div style="font-size:18px;">💡</div>
+    <div class="ico">●</div>
     <div>
-      <b>How sharing & sync works:</b> 
-      Every user's checkmarks, custom additions, and error statuses are stored safely in their own browser (<code>localStorage</code>). 
-      Your personal keys and changes are never transmitted. Check off models as you add them to your Google Sheet, then click 
+      <b>How sharing & sync works:</b>
+      Every user's checkmarks, custom additions, and error statuses are stored safely in their own browser (<code>localStorage</code>).
+      Your personal keys and changes are never transmitted. Check off models as you add them to your Google Sheet, then click
       <b>"Export Unchecked"</b> to generate a deduplicated JSON payload containing only new models.
     </div>
   </div>
@@ -146,32 +211,32 @@
   <div class="card">
     <div class="card-title">
       <span>Provider & Model Registry</span>
-      <div style="display:flex; gap:8px;">
-        <button class="gold" id="syncLiveBtn" onclick="pullLiveFromInternet()">🌐 Pull Live Free Models from Web</button>
-        <button class="gold" onclick="document.getElementById('reconcileInput').focus()">⚡ Smart AI Reconciler</button>
-        <button class="ghost" onclick="exportMissingForVault()">📋 Export Unchecked (For Sheet)</button>
+      <div class="actions">
+        <button class="gold" id="syncLiveBtn" onclick="pullLiveFromInternet()">Pull Live Free Models</button>
+        <button class="gold" onclick="document.getElementById('reconcileInput').focus()">Smart AI Reconciler</button>
+        <button class="ghost" onclick="exportMissingForVault()">Export Unchecked</button>
       </div>
     </div>
 
     <div class="filter-bar">
-      <span style="font-size:11px; font-weight:700; color:var(--grey); margin-right:4px;">Filter:</span>
+      <span class="filter-label">Filter</span>
       <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
-      <button class="filter-btn" onclick="setFilter('free', this)">100% Free (No Card)</button>
+      <button class="filter-btn" onclick="setFilter('free', this)">100% Free</button>
       <button class="filter-btn" onclick="setFilter('freemium', this)">Freemium / Trial</button>
       <button class="filter-btn" onclick="setFilter('paid', this)">Paid / Top-Up</button>
-      <button class="filter-btn" onclick="setFilter('unchecked', this)">Pending (Not In Vault)</button>
+      <button class="filter-btn" onclick="setFilter('unchecked', this)">Pending</button>
     </div>
 
     <table>
       <thead>
         <tr>
-          <th style="width:40px;">In Vault</th>
+          <th style="width:40px;">Vault</th>
           <th>Provider / ID</th>
           <th>Tier</th>
           <th>API Dashboard</th>
           <th>Target Model</th>
-          <th>Status / Error State</th>
-          <th style="width:50px;">Action</th>
+          <th>Status</th>
+          <th style="width:50px;"></th>
         </tr>
       </thead>
       <tbody id="providerTable"></tbody>
@@ -180,29 +245,29 @@
 
   <div class="grid">
     <div class="card">
-      <div class="card-title">⚡ Quick AI Paste & Reconcile</div>
-      <label>Paste raw LLM text, markdown table, or error diagnostics to reconcile:</label>
+      <div class="card-title">Quick AI Paste & Reconcile</div>
+      <label>Paste raw LLM text, markdown table, or error diagnostics</label>
       <textarea id="reconcileInput" rows="6" placeholder="Paste any AI output or error logs here, e.g.:
 'Card #2 Cerebras model set to gpt-oss-120b needs llama-3.3-70b and has 402 out of credit.
 Add Chutes AI at https://api.chutes.ai/v1/chat/completions using deepseek-ai/DeepSeek-R1.'"></textarea>
       <div class="row">
-        <button class="gold" onclick="processSmartBatch()">Auto-Reconcile & Update Fields</button>
+        <button class="gold" onclick="processSmartBatch()">Auto-Reconcile & Update</button>
         <button class="ghost" onclick="document.getElementById('reconcileInput').value=''">Clear</button>
       </div>
     </div>
 
     <div class="card">
       <div class="card-title">
-        <span>📦 Deduplicated Sheet Exporter</span>
+        <span>Deduplicated Sheet Exporter</span>
         <button class="ghost small" onclick="copyExportText()">Copy JSON</button>
       </div>
-      <label>Clean JSON payload (Excludes checked "In Vault" entries):</label>
+      <label>Clean JSON payload (excludes checked "In Vault" entries)</label>
       <textarea id="exportArea" rows="6" readonly placeholder="Click 'Export Unchecked' above to generate clean JSON..."></textarea>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-title">➕ Manual Provider Addition (Optional)</div>
+    <div class="card-title">Manual Provider Addition</div>
     <div class="row">
       <div><label>Company / Provider Name</label><input id="newLabel" placeholder="e.g. Hyperbolic"></div>
       <div><label>Short ID (lowercase)</label><input id="newId" placeholder="e.g. hyperbolic"></div>
@@ -295,18 +360,18 @@ Add Chutes AI at https://api.chutes.ai/v1/chat/completions using deepseek-ai/Dee
 
       tr.innerHTML = 
         '<td><input type="checkbox" ' + (p.inVault ? 'checked' : '') + ' onchange="toggleVault(' + idx + ', this.checked)"></td>' +
-        '<td><b>' + esc(p.label) + '</b><div style="font-size:10px; color:var(--grey); font-family:monospace;">' + esc(p.id) + '</div></td>' +
+        '<td><b>' + esc(p.label) + '</b><div style="font-size:10px; color:var(--text-faint); font-family:\'JetBrains Mono\',monospace; margin-top:2px;">' + esc(p.id) + '</div></td>' +
         '<td>' + tierBadge + '</td>' +
         '<td><a href="' + (p.get.indexOf('http') === 0 ? p.get : 'https://' + p.get) + '" target="_blank">' + esc(cleanGet) + '</a></td>' +
         '<td><code>' + esc(p.model) + '</code></td>' +
         '<td>' +
           '<select class="status-select ' + (isErr ? 'err-val' : 'ok-val') + '" onchange="changeStatus(' + idx + ', this.value)">' +
-            '<option value="ok"' + (p.status === 'ok' ? ' selected' : '') + '>✓ Ready / Active</option>' +
-            '<option value="402"' + (p.status === '402' ? ' selected' : '') + '>⚠️ 402: Needs Paid Credits</option>' +
-            '<option value="404"' + (p.status === '404' ? ' selected' : '') + '>⚠️ 404: Model Not Found</option>' +
-            '<option value="401"' + (p.status === '401' ? ' selected' : '') + '>❌ 401: Invalid Token / Scopes</option>' +
-            '<option value="429"' + (p.status === '429' ? ' selected' : '') + '>⏳ 429: Rate Limited</option>' +
-            '<option value="billing"' + (p.status === 'billing' ? ' selected' : '') + '>💳 Billing Required</option>' +
+            '<option value="ok"' + (p.status === 'ok' ? ' selected' : '') + '>Ready / Active</option>' +
+            '<option value="402"' + (p.status === '402' ? ' selected' : '') + '>402: Needs Paid Credits</option>' +
+            '<option value="404"' + (p.status === '404' ? ' selected' : '') + '>404: Model Not Found</option>' +
+            '<option value="401"' + (p.status === '401' ? ' selected' : '') + '>401: Invalid Token / Scopes</option>' +
+            '<option value="429"' + (p.status === '429' ? ' selected' : '') + '>429: Rate Limited</option>' +
+            '<option value="billing"' + (p.status === 'billing' ? ' selected' : '') + '>Billing Required</option>' +
           '</select>' +
         '</td>' +
         '<td><button class="ghost small" style="color:var(--red);" onclick="deleteEntry(' + idx + ')">×</button></td>';
@@ -315,7 +380,7 @@ Add Chutes AI at https://api.chutes.ai/v1/chat/completions using deepseek-ai/Dee
     });
 
     var pct = Math.round((inVaultCount / providers.length) * 100);
-    document.getElementById('statsDisplay').textContent = 'Vault Progress: ' + inVaultCount + ' / ' + providers.length + ' (' + pct + '%)';
+    document.getElementById('statsDisplay').innerHTML = 'Vault Progress: <b>' + inVaultCount + ' / ' + providers.length + '</b> (' + pct + '%)';
   }
 
   function toggleVault(idx, val) {
@@ -337,7 +402,7 @@ Add Chutes AI at https://api.chutes.ai/v1/chat/completions using deepseek-ai/Dee
   /* ---------- REAL-TIME INTERNET MODEL DISCOVERY ---------- */
   async function pullLiveFromInternet() {
     var btn = document.getElementById('syncLiveBtn');
-    btn.textContent = "⏳ Pulling Live from Web...";
+    btn.textContent = "Pulling Live from Web...";
     btn.disabled = true;
 
     try {
@@ -374,12 +439,12 @@ Add Chutes AI at https://api.chutes.ai/v1/chat/completions using deepseek-ai/Dee
       });
 
       saveState();
-      alert("✓ Real-Time Web Discovery Complete!\n• Scanned " + liveModels.length + " live models.\n• Ingested " + added + " new verified 100% FREE endpoints.");
+      alert("Real-Time Web Discovery Complete\n• Scanned " + liveModels.length + " live models.\n• Ingested " + added + " new verified 100% FREE endpoints.");
 
     } catch (err) {
-      alert("❌ Live Discovery Failed: " + err.message);
+      alert("Live Discovery Failed: " + err.message);
     } finally {
-      btn.textContent = "🌐 Pull Live Free Models from Web";
+      btn.textContent = "Pull Live Free Models";
       btn.disabled = false;
     }
   }
@@ -459,7 +524,7 @@ Add Chutes AI at https://api.chutes.ai/v1/chat/completions using deepseek-ai/Dee
     });
 
     saveState();
-    alert("✓ Reconciled: Processed model updates and extracted " + added + " new provider(s).");
+    alert("Reconciled: Processed model updates and extracted " + added + " new provider(s).");
   }
 
   function addNewEntry() {
@@ -490,7 +555,7 @@ Add Chutes AI at https://api.chutes.ai/v1/chat/completions using deepseek-ai/Dee
     document.getElementById('newModel').value = '';
 
     saveState();
-    alert('✓ Added ' + label + ' to registry.');
+    alert('Added ' + label + ' to registry.');
   }
 
   function exportMissingForVault() {
