@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Toolkit — Ops & Migration Dashboard</title>
+<title>AI Toolkit — Master Model & Operations Hub</title>
 <style>
   :root {
     --navy: #13294B; --navy2: #1C3A63; --gold: #C8A44D; --ice: #EDF2FA;
@@ -16,9 +16,9 @@
     background: var(--bg);
     color: var(--navy);
     padding: 24px;
-    font-size: 13.5px;
+    font-size: 13px;
   }
-  .container { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  .container { max-width: 1140px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
   
   header {
     background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
@@ -41,9 +41,6 @@
     border: 1px solid rgba(255,255,255,0.2);
   }
 
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  @media(max-width: 860px) { .grid { grid-template-columns: 1fr; } }
-
   .card {
     background: var(--card);
     border-radius: 12px;
@@ -60,276 +57,298 @@
     align-items: center;
   }
 
-  /* Checklist Table */
+  .filter-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .filter-btn {
+    padding: 6px 12px; border-radius: 20px; border: 1px solid var(--line);
+    background: var(--ice); color: var(--navy); font-size: 11.5px; font-weight: 600; cursor: pointer;
+  }
+  .filter-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+
   table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); font-size: 12.5px; vertical-align: middle; }
   th { background: var(--ice); font-weight: 600; color: var(--grey); }
   tr.done { background: #F0FDF4; }
   tr.done td { color: var(--green); }
-  tr.done a { color: var(--green); font-weight: 600; }
+  tr.has-err { background: #FFF8F8; }
+  
   input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--green); }
   a { color: #2563EB; text-decoration: none; font-weight: 500; }
   a:hover { text-decoration: underline; }
-
-  /* Forms & Tools */
-  label { display: block; font-size: 11px; font-weight: 700; color: var(--grey); margin-bottom: 6px; letter-spacing: 0.3px; }
-  textarea, input, select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 12.5px;
-    color: var(--navy);
-    background: #fff;
-    margin-bottom: 10px;
+  
+  select.status-select {
+    padding: 5px 8px; border-radius: 6px; border: 1px solid var(--line);
+    font-size: 11.5px; background: #fff; color: var(--navy);
   }
-  textarea { font-family: "SFMono-Regular", Consolas, Menlo, monospace; font-size: 12px; resize: vertical; }
-  textarea:focus, input:focus, select:focus { outline: none; border-color: var(--gold); }
+  select.status-select.err-val { border-color: var(--red); color: var(--red); background: #FBEDED; font-weight: 600; }
+  select.status-select.ok-val { border-color: var(--green); color: var(--green); background: #E9F3EC; font-weight: 600; }
 
+  label { display: block; font-size: 11px; font-weight: 700; color: var(--grey); margin-bottom: 4px; }
+  input, textarea, select {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px;
+    font-family: inherit; font-size: 12.5px; color: var(--navy); background: #fff; margin-bottom: 10px;
+  }
+  textarea { font-family: "SFMono-Regular", Consolas, Menlo, monospace; font-size: 11.5px; }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--gold); }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media(max-width: 860px) { .grid { grid-template-columns: 1fr; } }
   .row { display: flex; gap: 8px; }
   .row > * { flex: 1; }
 
-  button {
-    padding: 10px 16px;
-    border: 0;
-    border-radius: 6px;
-    background: var(--navy);
-    color: #fff;
-    font-size: 12.5px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s ease;
-  }
+  button { padding: 8px 14px; border: 0; border-radius: 6px; background: var(--navy); color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; }
   button:hover { background: var(--navy2); }
   button.gold { background: var(--gold); color: var(--navy); }
   button.gold:hover { background: #b8953f; }
   button.ghost { background: #fff; color: var(--navy); border: 1px solid var(--line); }
   button.ghost:hover { background: var(--ice); }
-
-  .out-box {
-    padding: 12px;
-    border-radius: 8px;
-    background: var(--ice);
-    border: 1px solid var(--line);
-    margin-top: 10px;
-    font-size: 12px;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    display: none;
-  }
-  .out-box.good { background: #E9F3EC; border-color: #C2E2CC; color: var(--green); display: block; }
-  .out-box.warn { background: var(--warm); border-color: #EEDFA8; color: #8A6D1F; display: block; }
-  .out-box.err { background: #FBEDED; border-color: #F3C6C6; color: var(--red); display: block; }
+  button.small { padding: 4px 8px; font-size: 11px; }
 
   .badge { display: inline-block; padding: 2px 7px; border-radius: 12px; font-size: 10px; font-weight: 700; }
-  .badge.in-vault { background: #DCFCE7; color: var(--green); }
-  .badge.pending { background: var(--ice); color: var(--grey); }
+  .badge.free { background: #DCFCE7; color: var(--green); }
+  .badge.freemium { background: #FEF3C7; color: #92400E; }
+  .badge.paid { background: #FBEDED; color: var(--red); }
 </style>
 </head>
 <body>
 
 <div class="container">
-  
   <header>
     <div>
-      <h1>🤖 AI Toolkit Provider & Model Manager</h1>
-      <div class="sub">Deployment, error diagnostics, and batch model importer</div>
+      <h1>🤖 AI Toolkit — Master Model & Provider Ops</h1>
+      <div class="sub">Dynamic catalog, status error tracking, tier filters & deduplicated Apps Script exporter</div>
     </div>
-    <div class="stats-pill" id="statsCount">Vault Progress: 6 / 13 (46%)</div>
+    <div class="stats-pill" id="statsDisplay">Vault Progress: 0 / 0 (0%)</div>
   </header>
 
-  <!-- TOP FULL WIDTH: Checklist -->
   <div class="card">
     <div class="card-title">
-      <span>Free Provider Setup Tracker</span>
-      <button class="ghost" style="padding:4px 10px; font-size:11px;" onclick="resetChecks()">Reset</button>
+      <span>Provider & Model Registry</span>
+      <div style="display:flex; gap:8px;">
+        <button class="gold" onclick="openAddModal()">＋ Add New Provider / Model</button>
+        <button class="ghost" onclick="exportMissingForVault()">📋 Export Unchecked (For Apps Script)</button>
+      </div>
     </div>
+
+    <div class="filter-bar">
+      <span style="font-size:11px; font-weight:700; color:var(--grey); margin-right:4px;">Filter Tier:</span>
+      <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+      <button class="filter-btn" onclick="setFilter('free', this)">100% Free</button>
+      <button class="filter-btn" onclick="setFilter('freemium', this)">Freemium / Trials</button>
+      <button class="filter-btn" onclick="setFilter('paid', this)">Paid / Credits</button>
+      <button class="filter-btn" onclick="setFilter('unchecked', this)">Not In Vault Yet</button>
+    </div>
+
     <table>
       <thead>
         <tr>
-          <th style="width:40px;">Done</th>
-          <th>Provider</th>
-          <th>Status</th>
+          <th style="width:40px;">In Vault</th>
+          <th>Provider / ID</th>
+          <th>Tier</th>
           <th>API Dashboard</th>
-          <th>Default Model / Fallback Slug</th>
+          <th>Target Model</th>
+          <th>Status / Error State</th>
+          <th style="width:50px;">Action</th>
         </tr>
       </thead>
-      <tbody id="rowsBody">
-        <tr class="done"><td><input type="checkbox" checked onchange="sync(this)"></td><td><b>Google Gemini</b></td><td><span class="badge in-vault">In Vault</span></td><td><a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a></td><td><code>gemini-2.5-flash</code></td></tr>
-        <tr class="done"><td><input type="checkbox" checked onchange="sync(this)"></td><td><b>Groq</b></td><td><span class="badge in-vault">In Vault</span></td><td><a href="https://console.groq.com/keys" target="_blank">console.groq.com</a></td><td><code>llama-3.3-70b-versatile</code></td></tr>
-        <tr class="done"><td><input type="checkbox" checked onchange="sync(this)"></td><td><b>OpenRouter</b></td><td><span class="badge in-vault">In Vault</span></td><td><a href="https://openrouter.ai/keys" target="_blank">openrouter.ai</a></td><td><code>meta-llama/llama-3.3-70b-instruct:free</code></td></tr>
-        <tr class="done"><td><input type="checkbox" checked onchange="sync(this)"></td><td><b>Cerebras</b></td><td><span class="badge in-vault">In Vault</span></td><td><a href="https://cloud.cerebras.ai" target="_blank">cloud.cerebras.ai</a></td><td><code>llama-3.3-70b</code></td></tr>
-        <tr class="done"><td><input type="checkbox" checked onchange="sync(this)"></td><td><b>NVIDIA NIM</b></td><td><span class="badge in-vault">In Vault</span></td><td><a href="https://build.nvidia.com" target="_blank">build.nvidia.com</a></td><td><code>meta/llama-3.3-70b-instruct</code></td></tr>
-        <tr class="done"><td><input type="checkbox" checked onchange="sync(this)"></td><td><b>Together AI</b></td><td><span class="badge in-vault">In Vault</span></td><td><a href="https://api.together.ai" target="_blank">api.together.ai</a></td><td><code>meta-llama/Llama-3.3-70B-Instruct-Turbo-Free</code></td></tr>
-        <tr><td><input type="checkbox" onchange="sync(this)"></td><td><b>GitHub Models</b></td><td><span class="badge pending">Pending</span></td><td><a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a></td><td><code>gpt-4o-mini</code></td></tr>
-        <tr><td><input type="checkbox" onchange="sync(this)"></td><td><b>Hugging Face</b></td><td><span class="badge pending">Pending</span></td><td><a href="https://huggingface.co/settings/tokens" target="_blank">huggingface.co/settings/tokens</a></td><td><code>meta-llama/Llama-3.3-70B-Instruct</code></td></tr>
-        <tr><td><input type="checkbox" onchange="sync(this)"></td><td><b>Mistral AI</b></td><td><span class="badge pending">Pending</span></td><td><a href="https://console.mistral.ai/api-keys" target="_blank">console.mistral.ai</a></td><td><code>mistral-small-latest</code></td></tr>
-        <tr><td><input type="checkbox" onchange="sync(this)"></td><td><b>SambaNova</b></td><td><span class="badge pending">Pending</span></td><td><a href="https://cloud.sambanova.ai/apis" target="_blank">cloud.sambanova.ai</a></td><td><code>Meta-Llama-3.3-70B-Instruct</code></td></tr>
-        <tr><td><input type="checkbox" onchange="sync(this)"></td><td><b>SiliconFlow</b></td><td><span class="badge pending">Pending</span></td><td><a href="https://cloud.siliconflow.com/account/ak" target="_blank">siliconflow.com</a></td><td><code>deepseek-ai/DeepSeek-V3</code></td></tr>
-        <tr><td><input type="checkbox" onchange="sync(this)"></td><td><b>Cohere</b></td><td><span class="badge pending">Pending</span></td><td><a href="https://dashboard.cohere.com/api-keys" target="_blank">dashboard.cohere.com</a></td><td><code>command-r-plus</code></td></tr>
-        <tr><td><input type="checkbox" onchange="sync(this)"></td><td><b>Cloudflare Workers AI</b></td><td><span class="badge pending">Pending</span></td><td><a href="https://dash.cloudflare.com" target="_blank">dash.cloudflare.com</a></td><td><code>@cf/meta/llama-3.3-70b-instruct-fp8-fast</code></td></tr>
-      </tbody>
+      <tbody id="providerTable"></tbody>
     </table>
   </div>
 
-  <!-- BOTTOM GRID: Diagnostics & Bulk Importer -->
   <div class="grid">
-    
-    <!-- ERROR ANALYZER -->
-    <div class="card">
-      <div class="card-title">🔍 API Error Diagnoser</div>
-      <label>Paste error output / server responses</label>
-      <textarea id="errInput" rows="5" placeholder='Paste error log here... e.g. "404 models/gemini-pro is not found", "402 Payment Required", or "429 Rate limit exceeded"'></textarea>
-      <button class="gold" onclick="diagnoseError()">Analyze Error</button>
-      <div id="errResult" class="out-box"></div>
-    </div>
-
-    <!-- BULK MODEL / KEY ARRAY IMPORTER -->
-    <div class="card">
-      <div class="card-title">📦 Bulk Model / Key Importer</div>
-      <label>Paste an Array or List of Models / Keys</label>
-      <textarea id="importInput" rows="5" placeholder='Paste raw list or JSON, e.g.:
-["gemini-2.5-flash", "llama-3.3-70b", "deepseek-v3"]
-or paste multiple API keys directly...'></textarea>
+    <div class="card" id="addCard">
+      <div class="card-title">➕ Add Custom Model / Provider Entry</div>
       <div class="row">
-        <button onclick="processBulk()">Format for Code.gs Vault</button>
-        <button class="ghost" onclick="copyFormatted()">Copy JSON</button>
+        <div><label>Company / Provider Name</label><input id="newLabel" placeholder="e.g. Chutes AI"></div>
+        <div><label>Short ID (lowercase, no spaces)</label><input id="newId" placeholder="e.g. chutes"></div>
       </div>
-      <div id="importResult" class="out-box"></div>
+      <div class="row">
+        <div><label>Tier Type</label>
+          <select id="newTier">
+            <option value="free">100% Free</option>
+            <option value="freemium">Freemium / Free Trial</option>
+            <option value="paid">Paid / Credits Required</option>
+          </select>
+        </div>
+        <div><label>Dashboard / API Key URL</label><input id="newGet" placeholder="e.g. chutes.ai"></div>
+      </div>
+      <div class="row">
+        <div><label>Base Completions URL</label><input id="newUrl" placeholder="https://api.chutes.ai/v1/chat/completions"></div>
+        <div><label>Default Model Name</label><input id="newModel" placeholder="meta-llama/Llama-3.3-70B-Instruct"></div>
+      </div>
+      <button class="gold" onclick="addNewEntry()">Save to Registry</button>
     </div>
 
+    <div class="card">
+      <div class="card-title">
+        <span>📦 Deduplicated Apps Script Exporter</span>
+        <button class="ghost small" onclick="copyExportText()">Copy JSON</button>
+      </div>
+      <label>JSON for "Import Custom Models / Providers" (Excludes what you already checked):</label>
+      <textarea id="exportArea" rows="7" readonly placeholder="Click 'Export Unchecked' above to generate clean JSON excluding models you already have in your vault..."></textarea>
+    </div>
   </div>
-
 </div>
 
 <script>
-  function sync(cb) {
-    var tr = cb.closest('tr');
-    var badge = tr.querySelector('.badge');
-    if (cb.checked) {
-      tr.classList.add('done');
-      badge.className = 'badge in-vault';
-      badge.textContent = 'In Vault';
-    } else {
-      tr.classList.remove('done');
-      badge.className = 'badge pending';
-      badge.textContent = 'Pending';
-    }
-    updateCount();
+  var defaultProviders = [
+    { id: 'gemini', label: 'Google Gemini', tier: 'free', get: 'https://aistudio.google.com/apikey', model: 'gemini-2.5-flash', url: 'https://generativelanguage.googleapis.com/v1beta/models/', inVault: true, status: 'ok' },
+    { id: 'groq', label: 'Groq', tier: 'free', get: 'https://console.groq.com/keys', model: 'llama-3.3-70b-versatile', url: 'https://api.groq.com/openai/v1/chat/completions', inVault: true, status: 'ok' },
+    { id: 'openrouter', label: 'OpenRouter', tier: 'free', get: 'https://openrouter.ai/keys', model: 'meta-llama/llama-3.3-70b-instruct:free', url: 'https://openrouter.ai/api/v1/chat/completions', inVault: true, status: 'ok' },
+    { id: 'cerebras', label: 'Cerebras', tier: 'freemium', get: 'https://cloud.cerebras.ai', model: 'llama-3.3-70b', url: 'https://api.cerebras.ai/v1/chat/completions', inVault: true, status: '402' },
+    { id: 'nvidia', label: 'NVIDIA NIM', tier: 'free', get: 'https://build.nvidia.com', model: 'meta/llama-3.3-70b-instruct', url: 'https://integrate.api.nvidia.com/v1/chat/completions', inVault: true, status: 'ok' },
+    { id: 'together', label: 'Together AI', tier: 'free', get: 'https://api.together.ai', model: 'meta-llama/Llama-3.3-70B-Instruct-Turbo-Free', url: 'https://api.together.xyz/v1/chat/completions', inVault: true, status: 'ok' },
+    { id: 'github', label: 'GitHub Models', tier: 'free', get: 'https://github.com/settings/tokens', model: 'gpt-4o-mini', url: 'https://models.inference.ai.azure.com/chat/completions', inVault: true, status: '401' },
+    { id: 'sambanova', label: 'SambaNova', tier: 'free', get: 'https://cloud.sambanova.ai/apis', model: 'Meta-Llama-3.3-70B-Instruct', url: 'https://api.sambanova.ai/v1/chat/completions', inVault: true, status: 'ok' },
+    { id: 'cohere', label: 'Cohere', tier: 'freemium', get: 'https://dashboard.cohere.com/api-keys', model: 'command-a-plus-05-2026', url: 'https://api.cohere.ai/compatibility/v1/chat/completions', inVault: true, status: 'ok' },
+    { id: 'siliconflow', label: 'SiliconFlow', tier: 'free', get: 'https://cloud.siliconflow.com/account/ak', model: 'deepseek-ai/DeepSeek-V3', url: 'https://api.siliconflow.com/v1/chat/completions', inVault: true, status: 'ok' },
+    { id: 'mistral', label: 'Mistral AI', tier: 'free', get: 'https://console.mistral.ai/api-keys', model: 'mistral-small-latest', url: 'https://api.mistral.ai/v1/chat/completions', inVault: true, status: 'ok' },
+    { id: 'fireworks', label: 'Fireworks AI', tier: 'paid', get: 'https://fireworks.ai', model: 'accounts/fireworks/models/llama-v3p3-70b-instruct', url: 'https://api.fireworks.ai/inference/v1/chat/completions', inVault: true, status: '402' },
+    { id: 'huggingface', label: 'Hugging Face', tier: 'free', get: 'https://huggingface.co/settings/tokens', model: 'meta-llama/Llama-3.3-70B-Instruct', url: 'https://router.huggingface.co/v1/chat/completions', inVault: true, status: 'ok' },
+    { id: 'novita', label: 'Novita AI', tier: 'freemium', get: 'https://novita.ai', model: 'meta-llama/llama-3.3-70b-instruct', url: 'https://api.novita.ai/v3/openai/chat/completions', inVault: false, status: 'ok' },
+    { id: 'deepinfra', label: 'DeepInfra', tier: 'paid', get: 'https://deepinfra.com/dash/api_keys', model: 'meta-llama/Llama-3.3-70B-Instruct', url: 'https://api.deepinfra.com/v1/openai/chat/completions', inVault: false, status: '402' },
+    { id: 'ai21', label: 'AI21', tier: 'freemium', get: 'https://studio.ai21.com', model: 'jamba-large', url: 'https://api.ai21.com/studio/v1/chat/completions', inVault: false, status: 'ok' },
+    { id: 'perplexity', label: 'Perplexity', tier: 'paid', get: 'https://perplexity.ai/settings/api', model: 'sonar', url: 'https://api.perplexity.ai/chat/completions', inVault: false, status: '402' },
+    { id: 'xai', label: 'xAI (Grok)', tier: 'paid', get: 'https://console.x.ai', model: 'grok-2-latest', url: 'https://api.x.ai/v1/chat/completions', inVault: false, status: '402' },
+    { id: 'chutes', label: 'Chutes AI', tier: 'free', get: 'https://chutes.ai', model: 'deepseek-ai/DeepSeek-R1', url: 'https://llm.chutes.ai/v1/chat/completions', inVault: false, status: 'ok' },
+    { id: 'aimlapi', label: 'AIML API', tier: 'free', get: 'https://aimlapi.com', model: 'meta-llama/Llama-3.3-70B-Instruct', url: 'https://api.aimlapi.com/v1/chat/completions', inVault: false, status: 'ok' }
+  ];
+
+  var providers = JSON.parse(localStorage.getItem('ai_providers_v1') || 'null') || defaultProviders;
+  var currentFilter = 'all';
+
+  function saveState() {
+    localStorage.setItem('ai_providers_v1', JSON.stringify(providers));
+    renderTable();
   }
 
-  function updateCount() {
-    var all = document.querySelectorAll('#rowsBody tr').length;
-    var done = document.querySelectorAll('#rowsBody tr.done').length;
-    var pct = Math.round((done / all) * 100);
-    document.getElementById('statsCount').textContent = 'Vault Progress: ' + done + ' / ' + all + ' (' + pct + '%)';
+  function setFilter(tier, btn) {
+    currentFilter = tier;
+    document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    renderTable();
   }
 
-  function resetChecks() {
-    document.querySelectorAll('#rowsBody input').forEach(function(i){ i.checked = false; sync(i); });
-  }
+  function renderTable() {
+    var tbody = document.getElementById('providerTable');
+    tbody.innerHTML = '';
+    var inVaultCount = 0;
 
-  function diagnoseError() {
-    var raw = document.getElementById('errInput').value.trim();
-    var out = document.getElementById('errResult');
-    if (!raw) {
-      out.className = 'out-box warn';
-      out.textContent = 'Paste an error log first.';
-      return;
-    }
+    providers.forEach(function(p, idx) {
+      if (p.inVault) inVaultCount++;
 
-    var lower = raw.toLowerCase();
-    var solution = '';
-    var type = 'warn';
+      if (currentFilter === 'free' && p.tier !== 'free') return;
+      if (currentFilter === 'freemium' && p.tier !== 'freemium') return;
+      if (currentFilter === 'paid' && p.tier !== 'paid') return;
+      if (currentFilter === 'unchecked' && p.inVault) return;
 
-    if (lower.indexOf('404') !== -1 || lower.indexOf('not found') !== -1) {
-      type = 'err';
-      solution = '❌ Error 404: Model Not Found / Quota Ceiling\n' +
-                 '• Root Cause 1: The model name string is outdated/retired.\n' +
-                 '• Root Cause 2 (Gemini-specific): Google returns 404 when your free quota for that specific model variant runs out.\n' +
-                 '👉 Fix: Use "Auto-fix all models" from the menu or switch to fallback: gemini-2.5-flash-lite.';
-    } else if (lower.indexOf('402') !== -1 || lower.indexOf('credit') !== -1 || lower.indexOf('payment') !== -1) {
-      type = 'err';
-      solution = '❌ Error 402: Out of Credit\n' +
-                 '• Root Cause: Provider (e.g. Cerebras/DeepSeek) requires an active credit balance.\n' +
-                 '👉 Fix: Switch off this key in Drawer or top up the provider account.';
-    } else if (lower.indexOf('429') !== -1 || lower.indexOf('rate limit') !== -1 || lower.indexOf('quota') !== -1) {
-      type = 'warn';
-      solution = '⚠️ Error 429: Rate Limit Exceeded\n' +
-                 '• Root Cause: Too many requests sent per minute.\n' +
-                 '👉 Fix: Code.gs automatically benches this key for 65s and routes to your other keys silently.';
-    } else if (lower.indexOf('401') !== -1 || lower.indexOf('403') !== -1 || lower.indexOf('unauthorized') !== -1) {
-      type = 'err';
-      solution = '❌ Error 401/403: Invalid API Key\n' +
-                 '• Root Cause: Extra whitespace, missing permissions, or revoked key.\n' +
-                 '👉 Fix: Re-copy the key directly from the provider dashboard.';
-    } else if (lower.indexOf('could not parse plan') !== -1 || lower.indexOf('json') !== -1) {
-      type = 'warn';
-      solution = '⚠️ JSON / Plan Parsing Collision\n' +
-                 '• Root Cause: Multi-command prompt produced a truncated response.\n' +
-                 '👉 Fix: Send commands one at a time, or ask the AI to execute via `run_custom_script`.';
-    } else {
-      type = 'warn';
-      solution = 'ℹ️ Generic Diagnostic:\n' +
-                 '• Raw Code: ' + raw.slice(0, 150) + '\n' +
-                 '• Tip: Check network connectivity or run "Test all my keys" in the Sheet menu.';
-    }
+      var tr = document.createElement('tr');
+      var isErr = ['401', '402', '404', '429', 'billing'].indexOf(p.status) !== -1;
+      if (p.inVault) tr.className = 'done';
+      if (isErr) tr.className += ' has-err';
 
-    out.className = 'out-box ' + type;
-    out.textContent = solution;
-  }
+      var tierBadge = p.tier === 'free' ? '<span class="badge free">100% Free</span>' :
+                      p.tier === 'freemium' ? '<span class="badge freemium">Freemium</span>' :
+                                              '<span class="badge paid">Paid / Credits</span>';
 
-  var lastGeneratedJson = '';
+      var cleanGet = p.get.replace(/^https?:\/\//, '');
 
-  function processBulk() {
-    var raw = document.getElementById('importInput').value.trim();
-    var out = document.getElementById('importResult');
-    if (!raw) {
-      out.className = 'out-box warn';
-      out.textContent = 'Paste a list or JSON array first.';
-      return;
-    }
+      tr.innerHTML = 
+        '<td><input type="checkbox" ' + (p.inVault ? 'checked' : '') + ' onchange="toggleVault(' + idx + ', this.checked)"></td>' +
+        '<td><b>' + esc(p.label) + '</b><div style="font-size:10px; color:var(--grey); font-family:monospace;">' + esc(p.id) + '</div></td>' +
+        '<td>' + tierBadge + '</td>' +
+        '<td><a href="' + (p.get.indexOf('http') === 0 ? p.get : 'https://' + p.get) + '" target="_blank">' + esc(cleanGet) + '</a></td>' +
+        '<td><code>' + esc(p.model) + '</code></td>' +
+        '<td>' +
+          '<select class="status-select ' + (isErr ? 'err-val' : 'ok-val') + '" onchange="changeStatus(' + idx + ', this.value)">' +
+            '<option value="ok"' + (p.status === 'ok' ? ' selected' : '') + '>✓ Ready / Active</option>' +
+            '<option value="402"' + (p.status === '402' ? ' selected' : '') + '>⚠️ 402: Needs Paid Credits</option>' +
+            '<option value="404"' + (p.status === '404' ? ' selected' : '') + '>⚠️ 404: Model Not Found</option>' +
+            '<option value="401"' + (p.status === '401' ? ' selected' : '') + '>❌ 401: Invalid Token / Permissions</option>' +
+            '<option value="429"' + (p.status === '429' ? ' selected' : '') + '>⏳ 429: Rate Limited</option>' +
+            '<option value="billing"' + (p.status === 'billing' ? ' selected' : '') + '>💳 Billing / Top-up Required</option>' +
+          '</select>' +
+        '</td>' +
+        '<td><button class="ghost small" style="color:var(--red);" onclick="deleteEntry(' + idx + ')">×</button></td>';
 
-    try {
-      // If it's already JSON
-      if (raw.startsWith('[') || raw.startsWith('{')) {
-        var parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-          lastGeneratedJson = JSON.stringify(parsed, null, 2);
-          out.className = 'out-box good';
-          out.textContent = '✓ Valid JSON array detected with ' + parsed.length + ' entries.\nReady to paste into the Import Backup field!';
-          return;
-        }
-      }
-    } catch(e) {}
-
-    // Fallback: Parse line-by-line model names or keys
-    var lines = raw.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean);
-    var generated = [];
-    lines.forEach(function(item, idx) {
-      generated.push({
-        id: 'k' + (Date.now() + idx),
-        nickname: 'Imported Key ' + (idx + 1),
-        provider: 'openrouter',
-        model: item,
-        key: item.startsWith('sk-') || item.startsWith('gsk_') ? item : 'PASTE_KEY_HERE',
-        enabled: true,
-        wins: 0,
-        fails: 0
-      });
+      tbody.appendChild(tr);
     });
 
-    lastGeneratedJson = JSON.stringify(generated, null, 2);
-    out.className = 'out-box good';
-    out.textContent = '✓ Formatted ' + lines.length + ' items into Apps Script Vault format:\n\n' + lastGeneratedJson;
+    var pct = Math.round((inVaultCount / providers.length) * 100);
+    document.getElementById('statsDisplay').textContent = 'Vault Progress: ' + inVaultCount + ' / ' + providers.length + ' (' + pct + '%)';
   }
 
-  function copyFormatted() {
-    if (!lastGeneratedJson) { alert('Generate formatted JSON first!'); return; }
-    navigator.clipboard.writeText(lastGeneratedJson);
-    alert('JSON copied to clipboard! Paste it into the "Import Backup" field in your Sheet drawer.');
+  function toggleVault(idx, val) { providers[idx].inVault = val; saveState(); }
+  function changeStatus(idx, val) { providers[idx].status = val; saveState(); }
+  function deleteEntry(idx) {
+    if (!confirm('Remove this model entry from the list?')) return;
+    providers.splice(idx, 1);
+    saveState();
   }
+
+  function addNewEntry() {
+    var label = document.getElementById('newLabel').value.trim();
+    var id = document.getElementById('newId').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+    var tier = document.getElementById('newTier').value;
+    var get = document.getElementById('newGet').value.trim();
+    var url = document.getElementById('newUrl').value.trim();
+    var model = document.getElementById('newModel').value.trim();
+
+    if (!label || !id || !url || !model) {
+      alert('Please fill in Company Name, ID, Base URL, and Model.');
+      return;
+    }
+
+    providers.push({
+      id: id, label: label, tier: tier, get: get || id,
+      url: url, model: model, inVault: false, status: 'ok'
+    });
+
+    document.getElementById('newLabel').value = '';
+    document.getElementById('newId').value = '';
+    document.getElementById('newGet').value = '';
+    document.getElementById('newUrl').value = '';
+    document.getElementById('newModel').value = '';
+
+    saveState();
+    alert('✓ Added ' + label + ' to registry.');
+  }
+
+  function exportMissingForVault() {
+    var unchecked = providers.filter(function(p){ return !p.inVault; });
+    if (!unchecked.length) {
+      document.getElementById('exportArea').value = 'All models are already checked as "In Vault"! Nothing to import.';
+      return;
+    }
+
+    var payload = unchecked.map(function(p){
+      return {
+        id: p.id, label: p.label, shape: 'openai', url: p.url,
+        model: p.model, free: p.tier === 'free', key: 'PASTE_' + p.id.toUpperCase() + '_KEY_HERE'
+      };
+    });
+
+    document.getElementById('exportArea').value = JSON.stringify(payload, null, 2);
+  }
+
+  function copyExportText() {
+    var txt = document.getElementById('exportArea');
+    if (!txt.value) { alert('Click "Export Unchecked" first!'); return; }
+    navigator.clipboard.writeText(txt.value);
+    alert('JSON copied to clipboard! Paste it into "Import Custom Models / Providers" in your Google Sheet drawer.');
+  }
+
+  function openAddModal() {
+    document.getElementById('addCard').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('newLabel').focus();
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/[&<>"]/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+    });
+  }
+
+  renderTable();
 </script>
 </body>
 </html>
