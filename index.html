@@ -18,7 +18,7 @@
     padding: 24px;
     font-size: 13px;
   }
-  .container { max-width: 1140px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  .container { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
   
   header {
     background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
@@ -40,6 +40,19 @@
     font-weight: 600;
     border: 1px solid rgba(255,255,255,0.2);
   }
+
+  .info-banner {
+    background: var(--ice);
+    border: 1px solid #C4D5ED;
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  .info-banner b { color: var(--navy2); }
 
   .card {
     background: var(--card);
@@ -114,28 +127,38 @@
 <div class="container">
   <header>
     <div>
-      <h1>🤖 AI Toolkit — Master Model & Provider Ops</h1>
-      <div class="sub">Dynamic catalog, status error tracking, tier filters & deduplicated Apps Script exporter</div>
+      <h1>🤖 AI Toolkit — Multi-Provider Ops Hub</h1>
+      <div class="sub">Dynamic reconciliation, error logging, and deduplicated sheet export</div>
     </div>
     <div class="stats-pill" id="statsDisplay">Vault Progress: 0 / 0 (0%)</div>
   </header>
+
+  <div class="info-banner">
+    <div style="font-size:18px;">💡</div>
+    <div>
+      <b>How sharing & sync works:</b> 
+      Every user's checkmarks, custom additions, and error statuses are stored safely in their own browser (<code>localStorage</code>). 
+      Your personal keys and changes are never transmitted. Check off models as you add them to your Google Sheet, then click 
+      <b>"Export Unchecked (For Sheet)"</b> to generate a deduplicated JSON payload containing only new models.
+    </div>
+  </div>
 
   <div class="card">
     <div class="card-title">
       <span>Provider & Model Registry</span>
       <div style="display:flex; gap:8px;">
-        <button class="gold" onclick="openAddModal()">＋ Add New Provider / Model</button>
-        <button class="ghost" onclick="exportMissingForVault()">📋 Export Unchecked (For Apps Script)</button>
+        <button class="gold" onclick="document.getElementById('reconcileInput').focus()">⚡ Smart AI Reconciler</button>
+        <button class="ghost" onclick="exportMissingForVault()">📋 Export Unchecked (For Sheet)</button>
       </div>
     </div>
 
     <div class="filter-bar">
-      <span style="font-size:11px; font-weight:700; color:var(--grey); margin-right:4px;">Filter Tier:</span>
+      <span style="font-size:11px; font-weight:700; color:var(--grey); margin-right:4px;">Filter:</span>
       <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
-      <button class="filter-btn" onclick="setFilter('free', this)">100% Free</button>
-      <button class="filter-btn" onclick="setFilter('freemium', this)">Freemium / Trials</button>
-      <button class="filter-btn" onclick="setFilter('paid', this)">Paid / Credits</button>
-      <button class="filter-btn" onclick="setFilter('unchecked', this)">Not In Vault Yet</button>
+      <button class="filter-btn" onclick="setFilter('free', this)">100% Free (No Card)</button>
+      <button class="filter-btn" onclick="setFilter('freemium', this)">Freemium / Trial</button>
+      <button class="filter-btn" onclick="setFilter('paid', this)">Paid / Top-Up</button>
+      <button class="filter-btn" onclick="setFilter('unchecked', this)">Pending (Not In Vault)</button>
     </div>
 
     <table>
@@ -155,37 +178,47 @@
   </div>
 
   <div class="grid">
-    <div class="card" id="addCard">
-      <div class="card-title">➕ Add Custom Model / Provider Entry</div>
+    <div class="card">
+      <div class="card-title">⚡ Quick AI Paste & Reconcile</div>
+      <label>Paste raw LLM text, markdown table, or error diagnostics to reconcile:</label>
+      <textarea id="reconcileInput" rows="6" placeholder="Paste any AI output or error logs here, e.g.:
+'Card #2 Cerebras model set to gpt-oss-120b needs llama-3.3-70b and has 402 out of credit.
+Add Chutes AI at https://api.chutes.ai/v1/chat/completions using deepseek-ai/DeepSeek-R1.'"></textarea>
       <div class="row">
-        <div><label>Company / Provider Name</label><input id="newLabel" placeholder="e.g. Chutes AI"></div>
-        <div><label>Short ID (lowercase, no spaces)</label><input id="newId" placeholder="e.g. chutes"></div>
+        <button class="gold" onclick="processSmartBatch()">Auto-Reconcile & Update Fields</button>
+        <button class="ghost" onclick="document.getElementById('reconcileInput').value=''">Clear</button>
       </div>
-      <div class="row">
-        <div><label>Tier Type</label>
-          <select id="newTier">
-            <option value="free">100% Free</option>
-            <option value="freemium">Freemium / Free Trial</option>
-            <option value="paid">Paid / Credits Required</option>
-          </select>
-        </div>
-        <div><label>Dashboard / API Key URL</label><input id="newGet" placeholder="e.g. chutes.ai"></div>
-      </div>
-      <div class="row">
-        <div><label>Base Completions URL</label><input id="newUrl" placeholder="https://api.chutes.ai/v1/chat/completions"></div>
-        <div><label>Default Model Name</label><input id="newModel" placeholder="meta-llama/Llama-3.3-70B-Instruct"></div>
-      </div>
-      <button class="gold" onclick="addNewEntry()">Save to Registry</button>
     </div>
 
     <div class="card">
       <div class="card-title">
-        <span>📦 Deduplicated Apps Script Exporter</span>
+        <span>📦 Deduplicated Sheet Exporter</span>
         <button class="ghost small" onclick="copyExportText()">Copy JSON</button>
       </div>
-      <label>JSON for "Import Custom Models / Providers" (Excludes what you already checked):</label>
-      <textarea id="exportArea" rows="7" readonly placeholder="Click 'Export Unchecked' above to generate clean JSON excluding models you already have in your vault..."></textarea>
+      <label>Clean JSON payload (Excludes checked "In Vault" entries):</label>
+      <textarea id="exportArea" rows="6" readonly placeholder="Click 'Export Unchecked' above to generate clean JSON..."></textarea>
     </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">➕ Manual Provider Addition (Optional)</div>
+    <div class="row">
+      <div><label>Company / Provider Name</label><input id="newLabel" placeholder="e.g. Hyperbolic"></div>
+      <div><label>Short ID (lowercase)</label><input id="newId" placeholder="e.g. hyperbolic"></div>
+      <div><label>Tier Type</label>
+        <select id="newTier">
+          <option value="free">100% Free</option>
+          <option value="freemium">Freemium / Free Trial</option>
+          <option value="paid">Paid / Credits Required</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>API Key Console URL</label><input id="newGet" placeholder="app.hyperbolic.xyz"></div>
+      <div><label>Base Completions URL</label><input id="newUrl" placeholder="https://api.hyperbolic.xyz/v1/chat/completions"></div>
+      <div><label>Default Model Name</label><input id="newModel" placeholder="meta-llama/Llama-3.3-70B-Instruct"></div>
+    </div>
+    <button class="ghost" onclick="addNewEntry()">Add Entry</button>
   </div>
 </div>
 
@@ -213,11 +246,11 @@
     { id: 'aimlapi', label: 'AIML API', tier: 'free', get: 'https://aimlapi.com', model: 'meta-llama/Llama-3.3-70B-Instruct', url: 'https://api.aimlapi.com/v1/chat/completions', inVault: false, status: 'ok' }
   ];
 
-  var providers = JSON.parse(localStorage.getItem('ai_providers_v1') || 'null') || defaultProviders;
+  var providers = JSON.parse(localStorage.getItem('ai_providers_v2') || 'null') || defaultProviders;
   var currentFilter = 'all';
 
   function saveState() {
-    localStorage.setItem('ai_providers_v1', JSON.stringify(providers));
+    localStorage.setItem('ai_providers_v2', JSON.stringify(providers));
     renderTable();
   }
 
@@ -263,9 +296,9 @@
             '<option value="ok"' + (p.status === 'ok' ? ' selected' : '') + '>✓ Ready / Active</option>' +
             '<option value="402"' + (p.status === '402' ? ' selected' : '') + '>⚠️ 402: Needs Paid Credits</option>' +
             '<option value="404"' + (p.status === '404' ? ' selected' : '') + '>⚠️ 404: Model Not Found</option>' +
-            '<option value="401"' + (p.status === '401' ? ' selected' : '') + '>❌ 401: Invalid Token / Permissions</option>' +
+            '<option value="401"' + (p.status === '401' ? ' selected' : '') + '>❌ 401: Invalid Token / Scopes</option>' +
             '<option value="429"' + (p.status === '429' ? ' selected' : '') + '>⏳ 429: Rate Limited</option>' +
-            '<option value="billing"' + (p.status === 'billing' ? ' selected' : '') + '>💳 Billing / Top-up Required</option>' +
+            '<option value="billing"' + (p.status === 'billing' ? ' selected' : '') + '>💳 Billing Required</option>' +
           '</select>' +
         '</td>' +
         '<td><button class="ghost small" style="color:var(--red);" onclick="deleteEntry(' + idx + ')">×</button></td>';
@@ -285,6 +318,79 @@
     saveState();
   }
 
+  function extractProvidersFromText(text) {
+    var results = [];
+    var clean = String(text || '').trim();
+
+    var jsonMatch = clean.match(/\[\s*\{[\s\S]*\}\s*\]/) || clean.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        var rawJson = jsonMatch[0].replace(/```json/gi, '').replace(/```/g, '')
+          .replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":').replace(/'/g, '"');
+        var parsed = JSON.parse(rawJson);
+        var arr = Array.isArray(parsed) ? parsed : [parsed];
+        return arr.map(function(item) {
+          var id = String(item.id || item.label || 'provider').toLowerCase().replace(/[^a-z0-9_]/g, '');
+          return {
+            id: id, label: item.label || item.name || id,
+            tier: item.tier || (item.free ? 'free' : 'freemium'),
+            get: item.get || item.website || (id + '.com'),
+            url: item.url || item.endpoint || ('https://api.' + id + '.com/v1/chat/completions'),
+            model: item.model || 'meta-llama/Llama-3.3-70B-Instruct',
+            inVault: false, status: 'ok'
+          };
+        });
+      } catch (e) {}
+    }
+
+    var lines = clean.split(/\r?\n/);
+    lines.forEach(function(line) {
+      var urlMatch = line.match(/https?:\/\/[^\s\)\|\,\'\"]+/i);
+      var modelMatch = line.match(/(?:llama[^\s\,\'\"\|]+|gemini[^\s\,\'\"\|]+|deepseek[^\s\,\'\"\|]+|qwen[^\s\,\'\"\|]+|mistral[^\s\,\'\"\|]+|gpt[^\s\,\'\"\|]+|[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+)/i);
+
+      if (urlMatch || modelMatch) {
+        var words = line.replace(/\|/g, ' ').replace(/https?:\/\/[^\s]+/g, '').trim().split(/\s+/);
+        var possibleName = words[0] || 'Custom Provider';
+        var id = possibleName.toLowerCase().replace(/[^a-z0-9_]/g, '') || ('prov_' + Date.now());
+        results.push({
+          id: id, label: possibleName, tier: line.toLowerCase().includes('free') ? 'free' : 'freemium',
+          get: urlMatch ? urlMatch[0] : (id + '.com'),
+          url: urlMatch ? urlMatch[0] : ('https://api.' + id + '.com/v1/chat/completions'),
+          model: modelMatch ? modelMatch[0] : 'llama-3.3-70b-instruct',
+          inVault: false, status: 'ok'
+        });
+      }
+    });
+
+    return results;
+  }
+
+  function processSmartBatch() {
+    var raw = document.getElementById('reconcileInput').value.trim();
+    if (!raw) { alert("Paste LLM text, markdown table, or JSON first."); return; }
+
+    var lower = raw.toLowerCase();
+    providers.forEach(function(p) {
+      if (lower.indexOf(p.id) !== -1 || lower.indexOf(p.label.toLowerCase()) !== -1) {
+        var segment = lower.slice(Math.max(0, lower.indexOf(p.id) - 40), lower.indexOf(p.id) + 160);
+        if (segment.includes('402') || segment.includes('out of credit')) p.status = '402';
+        else if (segment.includes('404') || segment.includes('not found')) p.status = '404';
+        else if (segment.includes('401') || segment.includes('token')) p.status = '401';
+        else if (segment.includes('429') || segment.includes('rate limit')) p.status = '429';
+      }
+    });
+
+    var extracted = extractProvidersFromText(raw);
+    var added = 0;
+    extracted.forEach(function(item) {
+      var exists = providers.some(function(p) { return p.id === item.id || p.url === item.url; });
+      if (!exists) { providers.push(item); added++; }
+    });
+
+    saveState();
+    alert("✓ Reconciled: Processed model updates and extracted " + added + " new provider(s).");
+  }
+
   function addNewEntry() {
     var label = document.getElementById('newLabel').value.trim();
     var id = document.getElementById('newId').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
@@ -293,10 +399,7 @@
     var url = document.getElementById('newUrl').value.trim();
     var model = document.getElementById('newModel').value.trim();
 
-    if (!label || !id || !url || !model) {
-      alert('Please fill in Company Name, ID, Base URL, and Model.');
-      return;
-    }
+    if (!label || !id || !url || !model) { alert('Please fill in Name, ID, Base URL, and Model.'); return; }
 
     providers.push({
       id: id, label: label, tier: tier, get: get || id,
@@ -316,7 +419,7 @@
   function exportMissingForVault() {
     var unchecked = providers.filter(function(p){ return !p.inVault; });
     if (!unchecked.length) {
-      document.getElementById('exportArea').value = 'All models are already checked as "In Vault"! Nothing to import.';
+      document.getElementById('exportArea').value = 'All models are already checked as "In Vault"! Nothing to export.';
       return;
     }
 
@@ -335,11 +438,6 @@
     if (!txt.value) { alert('Click "Export Unchecked" first!'); return; }
     navigator.clipboard.writeText(txt.value);
     alert('JSON copied to clipboard! Paste it into "Import Custom Models / Providers" in your Google Sheet drawer.');
-  }
-
-  function openAddModal() {
-    document.getElementById('addCard').scrollIntoView({ behavior: 'smooth' });
-    document.getElementById('newLabel').focus();
   }
 
   function esc(s) {
